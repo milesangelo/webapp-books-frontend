@@ -13,6 +13,7 @@ import Login from "./Components/Login";
 import NavBar from "./Components/NavBar";
 
 import { createTheme } from '@mui/material/styles';
+import Signup from "./Components/Signup";
 
 const theme = createTheme({
   palette: {
@@ -38,6 +39,7 @@ function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/login" element={<Login />} />
+        <Route path="/signup" element={<Signup />} />
         <Route path="/mybooks/readbooks" element={<ReadBookList />} />
         <Route path="/mybooks/addnew" element={<AddNewBook />} />
         <Route path="/account" element={<About />} />
