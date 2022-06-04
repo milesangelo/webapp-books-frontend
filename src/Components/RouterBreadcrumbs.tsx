@@ -33,7 +33,7 @@ const breadcrumbNameMap: { [key: string]: string } = {
   "/mybooks": "My Books",
   "/mybooks/readbooks": "Books I've read",
   "/mybooks/addnew": "Add a new book",
-  "/account": "Account",
+ // "/account": "Account",
 };
 
 function ListItemLink(props: ListItemLinkProps) {
@@ -116,7 +116,7 @@ export default function RouterBreadcrumbs() {
                 <ListItemLink sx={{ pl: 4 }} to="/mybooks/addnew" />
               </List>
             </Collapse>
-            <ListItemLink to="/account" />
+            {/* <ListItemLink to="/account" /> */}
           </List>
         </Box>
       </Box>

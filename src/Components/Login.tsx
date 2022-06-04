@@ -5,7 +5,6 @@ import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
-//import Link from '@mui/material/Link';
 import { Link } from 'react-router-dom';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
@@ -13,7 +12,12 @@ import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-import Signup from './Signup';
+//import AuthContext, { User } from '../Components/Auth/AuthContext';
+import axios from '../Api/axios';
+import { UserContext } from './Auth/AuthContext';
+const theme = createTheme();
+
+const LOGIN_URL = '/auth';
 
 function Copyright(props: any) {
   return (
@@ -28,16 +32,88 @@ function Copyright(props: any) {
   );
 }
 
-const theme = createTheme();
 
-export default function Login() {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+type ErrorWithMessage = {
+  message: string
+}
+
+function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
+  return (
+    typeof error === 'object' &&
+    error !== null &&
+    'message' in error &&
+    typeof (error as Record<string, unknown>).message === 'string'
+  )
+}
+
+function toErrorWithMessage(maybeError: unknown): ErrorWithMessage {
+  if (isErrorWithMessage(maybeError)) return maybeError
+
+  try {
+    return new Error(JSON.stringify(maybeError))
+  } catch {
+    // fallback in case there's an error stringifying the maybeError
+    // like with circular references for example.
+    return new Error(String(maybeError))
+  }
+}
+
+function getErrorMessage(error: unknown) {
+  return toErrorWithMessage(error).message
+}
+
+const Login = () => {
+
+  const userContext = React.useContext(UserContext);
+  //const { setAuth } = React.useContext(AuthContext);
+  
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     console.log({
       email: data.get('email'),
       password: data.get('password'),
-    });
+    })
+    
+    try {
+      const response = await axios.post(LOGIN_URL, 
+        JSON.stringify({
+          email: data.get('email'), 
+          password: data.get('password')
+        }), {
+          headers: { 'Content-Type': 'application/json' },
+          withCredentials: true 
+        }
+      );
+      console.log(JSON.stringify(response?.data));
+      console.log(JSON.stringify(response));
+
+      userContext?.setUser({
+        email: data.get('email') as string,
+        name: data.get('name') as string
+      })
+      // const user: User = {
+      //   firstName: response?.data?.firstName,
+      //   lastName: response?.data?.lastName,
+      //   email: response?.data?.email
+      // }
+      // const accessToken = response?.data?.accessToken;
+      // const roles = response?.data?.roles;
+      // const pwd = data.get('password');
+      // userContext.({ user, pwd, roles, accessToken });
+
+    } catch(err) {
+      reportError({message: getErrorMessage(err)})
+      // if (!err?.response) {
+      //   console.error('No Server Response');
+      // } else if (err.response?.status === 400) {
+      //   console.error('missing info')
+      // } else if (err.response?.status === 401) {
+      //   console.error('unauthorized');
+      // } else {
+      //   console.error('login failed')
+      // }
+    }    
   };
 
   return (
@@ -58,6 +134,7 @@ export default function Login() {
             backgroundPosition: 'center',
           }}
         />
+
         <Grid item xs={12} sm={8} md={5} component={Paper} elevation={6} square>
           <Box
             sx={{
@@ -127,3 +204,5 @@ export default function Login() {
     </ThemeProvider>
   );
 }
+
+export default Login;
