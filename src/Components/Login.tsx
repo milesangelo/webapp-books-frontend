@@ -1,4 +1,5 @@
 import * as React from 'react';
+import axios from 'axios';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
@@ -13,11 +14,14 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 //import AuthContext, { User } from '../Components/Auth/AuthContext';
-import axios from '../Api/axios';
+// import axios from '../Api/axios';
 import { UserContext } from './Auth/AuthContext';
+import { getErrorMessage } from '../Errors';
+import { CatchingPokemonSharp } from '@mui/icons-material';
+import { useState } from 'react';
 const theme = createTheme();
 
-const LOGIN_URL = '/auth';
+const LOGIN_URL = '/api/users';
 
 function Copyright(props: any) {
   return (
@@ -33,64 +37,83 @@ function Copyright(props: any) {
 }
 
 
-type ErrorWithMessage = {
-  message: string
-}
+const signIn = async ({ email, password }: { email: string, password: string }): Promise<string> => {
+  const response = await fetch('http://localhost:7182/api/users/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      'email': email,
+      'password': password
+    })
+  });
 
-function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'message' in error &&
-    typeof (error as Record<string, unknown>).message === 'string'
-  )
-}
+  const data = await response.text();
 
-function toErrorWithMessage(maybeError: unknown): ErrorWithMessage {
-  if (isErrorWithMessage(maybeError)) return maybeError
-
-  try {
-    return new Error(JSON.stringify(maybeError))
-  } catch {
-    // fallback in case there's an error stringifying the maybeError
-    // like with circular references for example.
-    return new Error(String(maybeError))
+  if (response.ok) {
+    if (data) {
+      console.log(`signin response data: ${data}`)
+      return Promise.resolve(data);
+    } else {
+      return Promise.reject('error in data')
+    }
+  } else {
+    return Promise.reject(response.status.toString())
   }
-}
+};
 
-function getErrorMessage(error: unknown) {
-  return toErrorWithMessage(error).message
-}
 
 const Login = () => {
-
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  
   const userContext = React.useContext(UserContext);
   //const { setAuth } = React.useContext(AuthContext);
   
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    })
-    
+
+    // console.log('event children:', event.currentTarget)
+
+    // const data = new FormData(event.currentTarget);
+    // console.log('test',{
+    //   'email': data.get('email')?.toString(),
+    //   'password': data.get('password')?.toString(),
+    // })
+    // var email = data.get('email');
+    // var password = data.get('password')?.toString();
     try {
-      const response = await axios.post(LOGIN_URL, 
-        JSON.stringify({
-          email: data.get('email'), 
-          password: data.get('password')
-        }), {
-          headers: { 'Content-Type': 'application/json' },
-          withCredentials: true 
-        }
-      );
-      console.log(JSON.stringify(response?.data));
-      console.log(JSON.stringify(response));
+      const response = await signIn({ email : email, password: password});
+
+      // const instance = axios.create({
+      //   baseURL: 'http://localhost:7182/api/',
+      // });
+
+      // const response = await fetch({
+      //   method: 'post',
+      //   url: 'http://localhost:7182/api/users',
+      //   body: {
+      //     email: data.get('email'), 
+      //     password: data.get('password')
+      //   }
+      // });
+      // const response = await axios('http://localhost:7182/api/users', 
+        // JSON.stringify({
+        //   email: data.get('email'), 
+        //   password: data.get('password')
+        // })
+        // , {
+        //   headers: { 'Content-Type': 'application/json' },
+        //   //withCredentials: true 
+        // }
+      // );
+     // console.log(JSON.stringify(response?.data));
+      console.log('response', JSON.stringify(response));
 
       userContext?.setUser({
-        email: data.get('email') as string,
-        name: data.get('name') as string
+        email: email,
+        name: email
       })
       // const user: User = {
       //   firstName: response?.data?.firstName,
@@ -161,6 +184,7 @@ const Login = () => {
                 name="email"
                 autoComplete="email"
                 autoFocus
+                onChange={(e) => { setEmail(e.currentTarget.value)}}
               />
               <TextField
                 margin="normal"
@@ -171,6 +195,8 @@ const Login = () => {
                 type="password"
                 id="password"
                 autoComplete="current-password"
+                onChange={(e) => { setPassword(e.currentTarget.value)}}
+
               />
               <FormControlLabel
                 control={<Checkbox value="remember" color="primary" />}
