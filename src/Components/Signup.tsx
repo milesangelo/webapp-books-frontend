@@ -12,6 +12,10 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
+import { useRef } from 'react';
+
+
+
 
 function Copyright(props: any) {
   return (
@@ -28,15 +32,64 @@ function Copyright(props: any) {
 
 const theme = createTheme();
 
+type RegistrationModel = {
+  firstName: string,
+  lastName: string,
+  email: string,
+  password: string
+}
+
 export default function Signup() {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const setRegistration = useRef<RegistrationModel>({} as RegistrationModel)
+
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+
+    try {
+      const response = await register(setRegistration.current);
+    } catch (err) {
+
+    }
     const data = new FormData(event.currentTarget);
     console.log({
       email: data.get('email'),
       password: data.get('password'),
     });
   };
+
+
+const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const oldValue = setRegistration.current;
+  setRegistration.current = {
+    ...oldValue,
+    [event.currentTarget.name]: event.currentTarget.value
+  } as RegistrationModel;
+
+  console.log(setRegistration.current);
+}
+
+const register = async (model: RegistrationModel): Promise<string> => {
+  const response = await fetch('http://localhost:7182/api/users/register', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(model)
+  });
+  const data = await response.text();
+
+  if (response.ok) {
+    if (data) {
+      console.log(`register response data: ${data}`)
+      return Promise.resolve(data);
+    } else {
+      return Promise.reject('error in data')
+    }
+  } else {
+    return Promise.reject(response.status.toString())
+  }
+};
 
   return (
     <ThemeProvider theme={theme}>
@@ -67,6 +120,7 @@ export default function Signup() {
                   id="firstName"
                   label="First Name"
                   autoFocus
+                  onChange={e => handleChange(e)}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -77,6 +131,7 @@ export default function Signup() {
                   label="Last Name"
                   name="lastName"
                   autoComplete="family-name"
+                  onChange={e => handleChange(e)}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -87,6 +142,7 @@ export default function Signup() {
                   label="Email Address"
                   name="email"
                   autoComplete="email"
+                  onChange={e => handleChange(e)}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -98,6 +154,7 @@ export default function Signup() {
                   type="password"
                   id="password"
                   autoComplete="new-password"
+                  onChange={e => handleChange(e)}
                 />
               </Grid>
               <Grid item xs={12}>
