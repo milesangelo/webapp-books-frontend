@@ -1,10 +1,9 @@
 import "./App.css";
 
 import { createTheme } from '@mui/material/styles';
-import React from "react";
 import { useUserContext } from "./Components/Auth/AuthContext";
 import NavBar from "./Components/NavBar";
-import { BrowserRouter, Route, Routes, useNavigate } from "react-router-dom";
+import { BrowserRouter, Route, Routes } from "react-router-dom";
 import Home from "./Components/Home";
 import Login from "./Components/Login";
 import Signup from "./Components/Signup";
@@ -29,30 +28,12 @@ const theme = createTheme({
   },
 });
 
-const AuthenticatedApp = React.lazy(() => import('./Components/AuthenticatedStack/AuthenticatedApp'))
-const UnauthenticatedApp = React.lazy(() => import('./Components/UnauthenticatedStack/UnauthenticatedApp'))
-
 function App() {
   const userContext = useUserContext()
   if (userContext) {
     console.log('userContext: ', JSON.stringify(userContext))
   }
 
-  const handleLogin = () => {
-    if (userContext) {
-      userContext.setUser({
-        email: 'test@gmail.com',
-        name: 'miles'
-      })
-    }
-  }
-
-  const handleLogout = () => {
-    if (userContext) {
-      userContext.setUser(null)
-    }
-  }
-  console.log((userContext === null))
   return (
     <BrowserRouter>
       <NavBar></NavBar>
@@ -63,10 +44,9 @@ function App() {
         <Route
           path="/mybooks/readbooks"
           element={
-            // <RequireAuth>
-            //   <ReadBookList />
-            // </RequireAuth>
-            <ReadBookList />
+            <RequireAuth>
+              <ReadBookList />
+            </RequireAuth>
           }
         />
         <Route
@@ -77,8 +57,6 @@ function App() {
             </RequireAuth>
           } 
         />
-        
-        {/*userContext?.user ? <AuthenticatedApp /> : <UnauthenticatedApp />*/}
       </Routes>
     </BrowserRouter>
   )

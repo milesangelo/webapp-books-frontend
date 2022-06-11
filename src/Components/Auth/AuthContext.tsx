@@ -8,7 +8,8 @@ export interface User {
 
 export type AuthUser = {
     email: string,
-    name: string
+    name: string,
+    token: string
 }
 
 type UserContextProviderProps = {

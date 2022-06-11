@@ -1,16 +1,9 @@
 import * as React from "react";
-import Box from "@mui/material/Box";
-import Card from "@mui/material/Card";
-import CardActions from "@mui/material/CardActions";
 import CardContent from "@mui/material/CardContent";
-import Button from "@mui/material/Button";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
-import { Container, Grid, Rating } from "@mui/material";
-import { maxWidth } from "@mui/system";
-import { BookSharp } from "@mui/icons-material";
+import { Grid, Rating } from "@mui/material";
 import bookService from '../Services/BookService';
-
 
 export interface Book {
   title: string;
@@ -64,7 +57,6 @@ const ReadBookList = () => {
   const [books, setBooks] = useState<Book[] | null>(null);
 
   React.useEffect(() => {
-
     if (!books) {
       bookService.getAll()
         .then((books: Book[] | undefined) => {
@@ -74,27 +66,8 @@ const ReadBookList = () => {
           } 
         })
     }
+  });
 
-
-    // setBooks([{
-    //   title: 'test1', 
-    //   author: 'author1', 
-    //   rating: 0.0 
-    // }, {
-    //   title: 'test2', 
-    //   author: 'author2', 
-    //   rating: 1.0
-    // }, {
-    //   title: 'test3', 
-    //   author: 'author3', 
-    //   rating: 3.5
-    // }, {
-    //   title: 'test4', 
-    //   author: 'author4', 
-    //   rating: 5.0
-    // }
-    // ])
-  }, []);
   return (
     <Grid
       container

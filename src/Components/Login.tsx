@@ -1,43 +1,35 @@
 import * as React from 'react';
-import axios from 'axios';
 import Avatar from '@mui/material/Avatar';
 import Button from '@mui/material/Button';
 import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-//import AuthContext, { User } from '../Components/Auth/AuthContext';
-// import axios from '../Api/axios';
 import { UserContext } from './Auth/AuthContext';
 import { getErrorMessage } from '../Errors';
-import { CatchingPokemonSharp } from '@mui/icons-material';
 import { useState } from 'react';
+import Copyright from './Common/Copyright';
+
 const theme = createTheme();
 
-const LOGIN_URL = '/api/users';
-
-function Copyright(props: any) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link to=''>
-        books.milesangelo.io
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
+export interface LoginResponse {
+  message: string,
+  isAuthenticated: boolean,
+  username: string,
+  email: string,
+  name: string,
+  token: string,
+  roles: string[]
 }
 
-
-const signIn = async ({ email, password }: { email: string, password: string }): Promise<string> => {
+const signIn = async ({ email, password }: { email: string, password: string }): Promise<LoginResponse> => {
   const response = await fetch('http://localhost:7182/api/users/login', {
     method: 'POST',
     headers: {
@@ -50,11 +42,12 @@ const signIn = async ({ email, password }: { email: string, password: string }):
   });
 
   const data = await response.text();
+  const res = JSON.parse(data) as LoginResponse;
 
   if (response.ok) {
-    if (data) {
-      console.log(`signin response data: ${data}`)
-      return Promise.resolve(data);
+    if (res) {
+      console.log(`signin response data: ${res}`)
+      return Promise.resolve(res);
     } else {
       return Promise.reject('error in data')
     }
@@ -63,79 +56,30 @@ const signIn = async ({ email, password }: { email: string, password: string }):
   }
 };
 
-
 const Login = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
   
+  const navigate = useNavigate();
   const userContext = React.useContext(UserContext);
-  //const { setAuth } = React.useContext(AuthContext);
   
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
-    // console.log('event children:', event.currentTarget)
-
-    // const data = new FormData(event.currentTarget);
-    // console.log('test',{
-    //   'email': data.get('email')?.toString(),
-    //   'password': data.get('password')?.toString(),
-    // })
-    // var email = data.get('email');
-    // var password = data.get('password')?.toString();
     try {
-      const response = await signIn({ email : email, password: password});
-
-      // const instance = axios.create({
-      //   baseURL: 'http://localhost:7182/api/',
-      // });
-
-      // const response = await fetch({
-      //   method: 'post',
-      //   url: 'http://localhost:7182/api/users',
-      //   body: {
-      //     email: data.get('email'), 
-      //     password: data.get('password')
-      //   }
-      // });
-      // const response = await axios('http://localhost:7182/api/users', 
-        // JSON.stringify({
-        //   email: data.get('email'), 
-        //   password: data.get('password')
-        // })
-        // , {
-        //   headers: { 'Content-Type': 'application/json' },
-        //   //withCredentials: true 
-        // }
-      // );
-     // console.log(JSON.stringify(response?.data));
-      console.log('response', JSON.stringify(response));
-
-      userContext?.setUser({
-        email: email,
-        name: email
-      })
-      // const user: User = {
-      //   firstName: response?.data?.firstName,
-      //   lastName: response?.data?.lastName,
-      //   email: response?.data?.email
-      // }
-      // const accessToken = response?.data?.accessToken;
-      // const roles = response?.data?.roles;
-      // const pwd = data.get('password');
-      // userContext.({ user, pwd, roles, accessToken });
-
+      await signIn({ email : email, password: password})
+        .then((response) => {
+          console.log('login response', response);
+          if (response.isAuthenticated) {
+            userContext?.setUser({
+              email: response.email,
+              token: response.token,
+              name: response.name
+            })
+            navigate('../')
+          }
+        })
     } catch(err) {
       reportError({message: getErrorMessage(err)})
-      // if (!err?.response) {
-      //   console.error('No Server Response');
-      // } else if (err.response?.status === 400) {
-      //   console.error('missing info')
-      // } else if (err.response?.status === 401) {
-      //   console.error('unauthorized');
-      // } else {
-      //   console.error('login failed')
-      // }
     }    
   };
 
@@ -196,7 +140,6 @@ const Login = () => {
                 id="password"
                 autoComplete="current-password"
                 onChange={(e) => { setPassword(e.currentTarget.value)}}
-
               />
               <FormControlLabel
                 control={<Checkbox value="remember" color="primary" />}
