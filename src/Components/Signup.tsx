@@ -5,37 +5,83 @@ import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Grid from '@mui/material/Grid';
 import Box from '@mui/material/Box';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-
-function Copyright(props: any) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link to='/'>
-        books.milesangelo.io
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
-}
+import { useRef } from 'react';
+import Copyright from './Common/Copyright';
 
 const theme = createTheme();
 
+export interface RegistrationResponse {
+  isRegistered: boolean,
+  message: string
+}
+
+type RegistrationModel = {
+  firstName: string,
+  lastName: string,
+  email: string,
+  password: string
+}
+
+
 export default function Signup() {
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+
+  const navigate = useNavigate();
+  const setRegistration = useRef<RegistrationModel>({} as RegistrationModel)
+
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
+
+    await register(setRegistration.current)
+      .then(success => {
+        if (success) {
+          console.log('successful registration');
+          navigate('../login')
+        }
+      })
+  }
+
+
+
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const oldValue = setRegistration.current;
+    setRegistration.current = {
+      ...oldValue,
+      [event.currentTarget.name]: event.currentTarget.value
+    } as RegistrationModel;
+
+    console.log(setRegistration.current);
+  }
+
+  const register = async (model: RegistrationModel): Promise<RegistrationResponse> => {
+    const response = await fetch('http://localhost:7182/api/users/register', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(model)
     });
+    const data = await response.text();
+    const result: RegistrationResponse = JSON.parse(data);
+    //const res = await response.json() as RegistrationResponse;
+
+    if (response.ok) {
+      if (data) {
+        console.log(`register response data: ${data}`)
+        return Promise.resolve(result);
+      } else {
+        return Promise.reject('error in data')
+      }
+    } else {
+      return Promise.reject(response.status.toString())
+    }
   };
 
   return (
@@ -67,6 +113,7 @@ export default function Signup() {
                   id="firstName"
                   label="First Name"
                   autoFocus
+                  onChange={e => handleChange(e)}
                 />
               </Grid>
               <Grid item xs={12} sm={6}>
@@ -77,6 +124,7 @@ export default function Signup() {
                   label="Last Name"
                   name="lastName"
                   autoComplete="family-name"
+                  onChange={e => handleChange(e)}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -87,6 +135,7 @@ export default function Signup() {
                   label="Email Address"
                   name="email"
                   autoComplete="email"
+                  onChange={e => handleChange(e)}
                 />
               </Grid>
               <Grid item xs={12}>
@@ -98,6 +147,7 @@ export default function Signup() {
                   type="password"
                   id="password"
                   autoComplete="new-password"
+                  onChange={e => handleChange(e)}
                 />
               </Grid>
               <Grid item xs={12}>

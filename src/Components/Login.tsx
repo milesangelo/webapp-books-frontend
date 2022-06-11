@@ -5,114 +5,81 @@ import CssBaseline from '@mui/material/CssBaseline';
 import TextField from '@mui/material/TextField';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Checkbox from '@mui/material/Checkbox';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import Paper from '@mui/material/Paper';
 import Box from '@mui/material/Box';
 import Grid from '@mui/material/Grid';
 import LockOutlinedIcon from '@mui/icons-material/LockOutlined';
 import Typography from '@mui/material/Typography';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
-//import AuthContext, { User } from '../Components/Auth/AuthContext';
-import axios from '../Api/axios';
 import { UserContext } from './Auth/AuthContext';
+import { getErrorMessage } from '../Errors';
+import { useState } from 'react';
+import Copyright from './Common/Copyright';
+
 const theme = createTheme();
 
-const LOGIN_URL = '/auth';
-
-function Copyright(props: any) {
-  return (
-    <Typography variant="body2" color="text.secondary" align="center" {...props}>
-      {'Copyright © '}
-      <Link to=''>
-        books.milesangelo.io
-      </Link>{' '}
-      {new Date().getFullYear()}
-      {'.'}
-    </Typography>
-  );
+export interface LoginResponse {
+  message: string,
+  isAuthenticated: boolean,
+  username: string,
+  email: string,
+  name: string,
+  token: string,
+  roles: string[]
 }
 
+const signIn = async ({ email, password }: { email: string, password: string }): Promise<LoginResponse> => {
+  const response = await fetch('http://localhost:7182/api/users/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      'email': email,
+      'password': password
+    })
+  });
 
-type ErrorWithMessage = {
-  message: string
-}
+  const data = await response.text();
+  const res = JSON.parse(data) as LoginResponse;
 
-function isErrorWithMessage(error: unknown): error is ErrorWithMessage {
-  return (
-    typeof error === 'object' &&
-    error !== null &&
-    'message' in error &&
-    typeof (error as Record<string, unknown>).message === 'string'
-  )
-}
-
-function toErrorWithMessage(maybeError: unknown): ErrorWithMessage {
-  if (isErrorWithMessage(maybeError)) return maybeError
-
-  try {
-    return new Error(JSON.stringify(maybeError))
-  } catch {
-    // fallback in case there's an error stringifying the maybeError
-    // like with circular references for example.
-    return new Error(String(maybeError))
+  if (response.ok) {
+    if (res) {
+      console.log(`signin response data: ${res}`)
+      return Promise.resolve(res);
+    } else {
+      return Promise.reject('error in data')
+    }
+  } else {
+    return Promise.reject(response.status.toString())
   }
-}
-
-function getErrorMessage(error: unknown) {
-  return toErrorWithMessage(error).message
-}
+};
 
 const Login = () => {
-
+  const [email, setEmail] = useState<string>('');
+  const [password, setPassword] = useState<string>('');
+  
+  const navigate = useNavigate();
   const userContext = React.useContext(UserContext);
-  //const { setAuth } = React.useContext(AuthContext);
   
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    console.log({
-      email: data.get('email'),
-      password: data.get('password'),
-    })
-    
     try {
-      const response = await axios.post(LOGIN_URL, 
-        JSON.stringify({
-          email: data.get('email'), 
-          password: data.get('password')
-        }), {
-          headers: { 'Content-Type': 'application/json' },
-          withCredentials: true 
-        }
-      );
-      console.log(JSON.stringify(response?.data));
-      console.log(JSON.stringify(response));
-
-      userContext?.setUser({
-        email: data.get('email') as string,
-        name: data.get('name') as string
-      })
-      // const user: User = {
-      //   firstName: response?.data?.firstName,
-      //   lastName: response?.data?.lastName,
-      //   email: response?.data?.email
-      // }
-      // const accessToken = response?.data?.accessToken;
-      // const roles = response?.data?.roles;
-      // const pwd = data.get('password');
-      // userContext.({ user, pwd, roles, accessToken });
-
+      await signIn({ email : email, password: password})
+        .then((response) => {
+          console.log('login response', response);
+          if (response.isAuthenticated) {
+            userContext?.setUser({
+              email: response.email,
+              token: response.token,
+              name: response.name
+            })
+            navigate('../')
+          }
+        })
     } catch(err) {
       reportError({message: getErrorMessage(err)})
-      // if (!err?.response) {
-      //   console.error('No Server Response');
-      // } else if (err.response?.status === 400) {
-      //   console.error('missing info')
-      // } else if (err.response?.status === 401) {
-      //   console.error('unauthorized');
-      // } else {
-      //   console.error('login failed')
-      // }
     }    
   };
 
@@ -161,6 +128,7 @@ const Login = () => {
                 name="email"
                 autoComplete="email"
                 autoFocus
+                onChange={(e) => { setEmail(e.currentTarget.value)}}
               />
               <TextField
                 margin="normal"
@@ -171,6 +139,7 @@ const Login = () => {
                 type="password"
                 id="password"
                 autoComplete="current-password"
+                onChange={(e) => { setPassword(e.currentTarget.value)}}
               />
               <FormControlLabel
                 control={<Checkbox value="remember" color="primary" />}
