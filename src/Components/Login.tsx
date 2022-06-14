@@ -16,6 +16,8 @@ import { UserContext } from './Auth/AuthContext';
 import { getErrorMessage } from '../Errors';
 import { useState } from 'react';
 import Copyright from './Common/Copyright';
+import { Alert, Collapse, IconButton } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
 const theme = createTheme();
 
@@ -59,7 +61,15 @@ const signIn = async ({ email, password }: { email: string, password: string }):
 const Login = () => {
   const [email, setEmail] = useState<string>('');
   const [password, setPassword] = useState<string>('');
-  
+  const [open, setOpen] = useState(false);
+  const [error, setError] = useState('');
+
+  const handleError = (message:string) => {
+    console.log(message)
+    setError(message);
+    setOpen(true);
+  }
+
   const navigate = useNavigate();
   const userContext = React.useContext(UserContext);
   
@@ -76,6 +86,8 @@ const Login = () => {
               name: response.name
             })
             navigate('../')
+          } else {
+            handleError(response.message)
           }
         })
     } catch(err) {
@@ -145,6 +157,26 @@ const Login = () => {
                 control={<Checkbox value="remember" color="primary" />}
                 label="Remember me"
               />
+              <Collapse in={open}>
+                  <Alert
+                    severity='error'
+                    action={
+                      <IconButton
+                        aria-label="close"
+                        color="inherit"
+                        size="small"
+                        onClick={() => {
+                          setOpen(false);
+                        }}
+                      >
+                        <CloseIcon fontSize="inherit" />
+                      </IconButton>
+                    }
+                    sx={{ mb: 2 }}
+                  >
+                    {error}
+                  </Alert>
+                </Collapse>
               <Button
                 type="submit"
                 fullWidth

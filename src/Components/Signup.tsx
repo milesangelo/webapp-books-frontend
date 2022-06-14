@@ -14,6 +14,8 @@ import Container from '@mui/material/Container';
 import { createTheme, ThemeProvider } from '@mui/material/styles';
 import { useRef } from 'react';
 import Copyright from './Common/Copyright';
+import { Alert, Collapse, IconButton } from '@mui/material';
+import CloseIcon from '@mui/icons-material/Close';
 
 const theme = createTheme();
 
@@ -29,12 +31,12 @@ type RegistrationModel = {
   password: string
 }
 
-
 export default function Signup() {
 
   const navigate = useNavigate();
   const setRegistration = useRef<RegistrationModel>({} as RegistrationModel)
-
+  const [open, setOpen] = React.useState(false);
+  const [error, setError] = React.useState('');
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -48,6 +50,11 @@ export default function Signup() {
       })
   }
 
+  const handleError = (message:string) => {
+    console.log(message)
+    setError(message);
+    setOpen(true);
+  } 
 
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -73,10 +80,11 @@ export default function Signup() {
     //const res = await response.json() as RegistrationResponse;
 
     if (response.ok) {
-      if (data) {
+      if (result.isRegistered) {
         console.log(`register response data: ${data}`)
         return Promise.resolve(result);
       } else {
+        handleError(result.message);
         return Promise.reject('error in data')
       }
     } else {
@@ -150,11 +158,28 @@ export default function Signup() {
                   onChange={e => handleChange(e)}
                 />
               </Grid>
+
               <Grid item xs={12}>
-                <FormControlLabel
-                  control={<Checkbox value="allowExtraEmails" color="primary" />}
-                  label="I want to receive inspiration, marketing promotions and updates via email."
-                />
+                <Collapse in={open}>
+                  <Alert
+                    severity='error'
+                    action={
+                      <IconButton
+                        aria-label="close"
+                        color="inherit"
+                        size="small"
+                        onClick={() => {
+                          setOpen(false);
+                        }}
+                      >
+                        <CloseIcon fontSize="inherit" />
+                      </IconButton>
+                    }
+                    sx={{ mb: 2 }}
+                  >
+                    {error}
+                  </Alert>
+                </Collapse>
               </Grid>
             </Grid>
             <Button
@@ -174,6 +199,7 @@ export default function Signup() {
             </Grid>
           </Box>
         </Box>
+
         <Copyright sx={{ mt: 5 }} />
       </Container>
     </ThemeProvider>

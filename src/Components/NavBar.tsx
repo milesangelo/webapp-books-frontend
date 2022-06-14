@@ -5,26 +5,21 @@ import RouterBreadcrumbs from "./RouterBreadcrumbs";
 import { Link, useNavigate } from "react-router-dom";
 import { useUserContext } from "./Auth/AuthContext";
 
-
-
-
-
 const NavBar = () => {
   const [drawerState, setDrawerState] = useState(false);
-
   const [open, setOpen] = React.useState(false);
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
-
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const auth = useUserContext();
-  console.log('navbar auth', auth)
+  console.log('navbar auth', auth);
 
   const handleLogout = () => {
     auth?.setUser(null);
-    handleClose()
-    navigate('login')
+    handleClose();
+    navigate('login');
   }
 
   const toggleDrawer =
@@ -80,7 +75,7 @@ const NavBar = () => {
             Books
           </Typography>
 
-          {auth?.user && <Button onClick={handleOpen} color="inherit">Open modal</Button> ||
+          {auth?.user && <Button onClick={handleOpen} color="inherit">Logout</Button> ||
             <Button component={Link} to={'/login'} color="inherit">Login</Button> 
             }
           <Modal
