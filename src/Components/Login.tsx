@@ -32,7 +32,7 @@ export interface LoginResponse {
 }
 
 const signIn = async ({ email, password }: { email: string, password: string }): Promise<LoginResponse> => {
-  const response = await fetch('http://localhost:5000/api/users/login', {
+  const response = await fetch('http://webapp-books-api:5000/api/users/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -51,7 +51,7 @@ const signIn = async ({ email, password }: { email: string, password: string }):
       console.log(`signin response data: ${res}`)
       return Promise.resolve(res);
     } else {
-      return Promise.reject('error in data')
+      return Promise.reject('error in data');
     }
   } else {
     return Promise.reject(response.status.toString())
