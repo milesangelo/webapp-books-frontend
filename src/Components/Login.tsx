@@ -32,7 +32,7 @@ export interface LoginResponse {
 }
 
 const signIn = async ({ email, password }: { email: string, password: string }): Promise<LoginResponse> => {
-  const response = await fetch('http://localhost:7182/api/users/login', {
+  const response = await fetch('http://localhost:5000/api/users/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',

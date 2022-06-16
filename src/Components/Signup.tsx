@@ -68,7 +68,7 @@ export default function Signup() {
   }
 
   const register = async (model: RegistrationModel): Promise<RegistrationResponse> => {
-    const response = await fetch('http://localhost:7182/api/users/register', {
+    const response = await fetch('http://localhost:5000/api/users/register', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

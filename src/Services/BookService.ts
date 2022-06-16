@@ -3,7 +3,7 @@ import { Book } from '../Components/ReadBookList';
 import { getErrorMessage } from '../Errors';
 
 class BookService {
-    url = "api/books";
+    url = "http://localhost:5000/api/books";
 
     getAll = async () => {
         try {
