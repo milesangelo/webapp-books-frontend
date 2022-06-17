@@ -32,7 +32,7 @@ export interface LoginResponse {
 }
 
 const signIn = async ({ email, password }: { email: string, password: string }): Promise<LoginResponse> => {
-  const response = await fetch('http://webapp-books-api:5000/api/users/login', {
+  const response = await fetch('http://books-api.milesangelo.io/api/users/login', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
